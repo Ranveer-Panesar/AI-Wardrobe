@@ -39,14 +39,57 @@ app/
 └── core/               # Shared logic: security/hashing, JWT, etc. (Phase 1)
 ```
 
-## What's implemented so far (Phase 0)
+## What's implemented so far
 
+**Phase 0**
 - App scaffold, config loading, DB wiring
 - `User` model
 - `/health` and `/health/db` endpoints
 
-## Next up (Phase 1)
+**Phase 2 (classification piece only, started early)**
+- `POST /classify` — upload a garment photo, get back category, pattern,
+  formality, and dominant colors. Add `?include_embedding=true` to also get
+  the raw 512-dim Fashion-CLIP embedding (needed later for compatibility
+  scoring — not returned by default to keep the response small).
+- Uses [Fashion-CLIP](https://huggingface.co/patrickjohncyh/fashion-clip)
+  for zero-shot classification — no training required, just scoring the
+  image against a candidate label list (see `app/services/classification.py`
+  to tune the label sets).
+- Color extraction is classical (PIL median-cut quantization), no ML needed.
+- **First run will download the Fashion-CLIP model (~600MB) from Hugging
+  Face** — needs real internet access, give it a minute the first time.
+- Not yet wired to persist results to a `Garment` DB record — that lands
+  once the wardrobe upload flow and `Garment` model exist.
+
+### Try it
+
+```bash
+uvicorn app.main:app --reload
+# then, in another terminal:
+curl -X POST "http://localhost:8000/classify" \
+  -F "file=@/path/to/a/shirt/photo.jpg"
+```
+
+Or just use the interactive docs at `http://localhost:8000/docs` — expand
+`/classify`, "Try it out", upload a file.
+
+### Run tests
+
+```bash
+pytest tests/ -v
+```
+
+The classify tests use a mocked classifier (see `tests/test_classify.py`)
+so they run instantly without needing the real model downloaded — good for
+quick iteration. Worth testing against the *real* model manually via `/docs`
+too, since zero-shot label sets sometimes need tuning based on what real
+garment photos actually look like.
+
+## Next up (Phase 1 / rest of Phase 2)
 
 - `app/core/security.py` — password hashing + JWT helpers
 - `app/schemas/user.py` — signup/login request/response shapes
 - `app/routers/auth.py` — `/auth/signup`, `/auth/login`, `/auth/refresh`
+- Wardrobe upload endpoint that calls the classifier and saves a `Garment`
+  record (depends on the `Garment` model — coordinate schema with your
+  teammate before building this)
