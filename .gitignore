@@ -1,0 +1,21 @@
+# --- Environment / secrets ---
+.env
+*.env
+!.env.example
+
+# --- Python (backend) ---
+venv/
+__pycache__/
+*.pyc
+*.db
+backend/uploads/
+
+# --- Node (frontend) ---
+node_modules/
+dist/
+.vite/
+
+# --- OS / editor ---
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
