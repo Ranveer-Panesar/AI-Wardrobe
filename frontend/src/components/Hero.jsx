@@ -3,19 +3,19 @@ import React from 'react'
 
 const Hero = () => {
     return (
-        <div className='w-full px-20 py-5 flex flex-col md:flex-row items-center justify-between gap-16 md:bg-[url(/closet.jpg)] md:bg-cover md:bg-center md:bg-no-repeat  '>
-            <div className='flex flex-col gap-6 items-start md:w-5/12'>
-                <div className=' uppercase text-xs bg-white px-4 py-1.5 font-semibold rounded-full text-gray-700 border border-gray-200'>AI POWERED • SMART • PERSONAL</div>
+        <div className='w-full px-6 md:px-20 py-2 flex flex-col md:flex-row items-center justify-between gap-16 md:bg-[url(/closet.jpg)] md:bg-cover md:bg-center md:bg-no-repeat  '>
+            <div className='flex flex-col gap-3 items-start md:w-5/12'>
+                <div className='font uppercase text-xs bg-white px-4 py-1.5 font-semibold rounded-full text-gray-700 border border-gray-200'>AI POWERED • SMART • PERSONAL</div>
 
-                <h1 className='text-3xl md:text-5xl  font-bold leading-tight text-gray-900'> Turn Your Closet Into Your <span className='text-indigo-400'>Personal</span> Stylist</h1>
+                <h1 className='font-roboto text-3xl md:text-5xl  font-bold leading-tight text-gray-900'> Turn Your Closet Into Your <span className='text-indigo-400'>Personal</span> Stylist</h1>
 
-                <p className='text-base text-gray-500 max-w-md leading-relaxed'>Take photos of your clothes, and Al creates
+                <p className='text-base text-gray-500 max-w-md leading-normal'>Take photos of your clothes, and Al creates
                     thousands of outfit combinations from your
                     actual wardrobe. Get perfect outfit ideas
                     for every occasion.
                 </p>
 
-                <div className='flex  gap-4 mt-2 sm:flex-row'>
+                <div className='flex items-center justify-center gap-4 mt-2 sm:flex-row'>
                     <button className='bg-black text-white py-1.5  px-3  md:px-7 md:py-3.5 rounded-full text-sm font-medium flex items-center gap-2 whitespace-nowrap'>Scan My Closet</button>
 
                     <button className='bg-white text-black border border-gray-300 md:px-7 md:py-3.5 rounded-full text-sm font-medium flex items-center gap-2  px-3 py-1.5 whitespace-nowrap'>Watch Demo</button>
@@ -44,9 +44,11 @@ const Hero = () => {
             </div>
             
             <div className='md:hidden flex rounded-full'>
-                <img src="/hero.png" alt="Ai Wardrobe"
+                <img src="/hero.png" 
+                alt="Ai Wardrobe"
                 className='bg-contain rounded-b-2xl' />
             </div>
+            
         </div>
     )
 }

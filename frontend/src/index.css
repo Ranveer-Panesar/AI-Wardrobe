@@ -3,7 +3,7 @@
 @theme {
   --color-background: #FDFBF7;
   --color-surface: #111111;
-  --font-sans: "Inter", sans-serif;
+  --font-sans: "Roboto", sans-serif;
 }
 
 body {
