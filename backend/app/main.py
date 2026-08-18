@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
 from app.database import Base, engine
-from app.routers import classify, health
+from app.routers import auth, classify, health
 
 # Importing app.models registers all model classes with Base's metadata
 # so create_all() below knows what tables to create.
@@ -20,9 +20,9 @@ app.add_middleware(
 )
 
 app.include_router(health.router)
+app.include_router(auth.router)
 app.include_router(classify.router)
-# Auth, wardrobe, and render routers get added here in later phases:
-# app.include_router(auth.router, prefix="/auth", tags=["auth"])
+# Wardrobe and render routers get added here in later phases:
 
 
 @app.on_event("startup")
