@@ -13,7 +13,11 @@ python-multipart==0.0.9
 # Added in Phase 2 (Postgres, once you move off SQLite):
 # psycopg[binary]==3.2.1
 
-# Added in Phase 2 (Fashion-CLIP):
-# transformers==4.44.2
-# torch==2.4.1
-# pillow==10.4.0
+# Phase 2 — classification (Fashion-CLIP)
+transformers==4.44.2
+torch==2.4.1        # CPU build installs by default; see README for GPU/CUDA setup
+pillow==10.4.0
+
+# Testing
+pytest==8.3.3
+httpx==0.27.2        # required by FastAPI's TestClient
