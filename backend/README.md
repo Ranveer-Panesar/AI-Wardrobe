@@ -46,6 +46,18 @@ app/
 - `User` model
 - `/health` and `/health/db` endpoints
 
+**Phase 1 (auth)**
+- `POST /auth/signup` — email + international-format phone + password (min 8 chars)
+- `POST /auth/login` — returns access token (30 min) + refresh token (30 days)
+- `POST /auth/refresh` — rotates both tokens
+- `app/core/deps.py` — `get_current_user` dependency for protecting any future route: `user: User = Depends(get_current_user)`
+- Passwords hashed with bcrypt via passlib. **Note the pinned `bcrypt==4.0.1`
+  in requirements.txt** — passlib 1.7.4 is incompatible with bcrypt 4.1+ and
+  will silently break password hashing at runtime if you ever `pip install
+  --upgrade bcrypt` without checking this.
+- No email/phone OTP verification yet (signup succeeds immediately) — add
+  when you wire up a real SMS/email provider.
+
 **Phase 2 (classification piece only, started early)**
 - `POST /classify` — upload a garment photo, get back category, pattern,
   formality, and dominant colors. Add `?include_embedding=true` to also get

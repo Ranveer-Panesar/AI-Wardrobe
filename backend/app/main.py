@@ -1,9 +1,13 @@
+from pathlib import Path
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
 from app.config import settings
 from app.database import Base, engine
-from app.routers import classify, health
+from app.routers import auth, classify, health
+from app.routers import wardrobe, outfits
 
 # Importing app.models registers all model classes with Base's metadata
 # so create_all() below knows what tables to create.
@@ -20,9 +24,17 @@ app.add_middleware(
 )
 
 app.include_router(health.router)
+app.include_router(auth.router)
 app.include_router(classify.router)
-# Auth, wardrobe, and render routers get added here in later phases:
-# app.include_router(auth.router, prefix="/auth", tags=["auth"])
+app.include_router(wardrobe.router)   # Phase 2 — wardrobe CRUD
+app.include_router(outfits.router)    # Phase 3 — outfit generation
+
+# StaticFiles must be mounted at app-definition time (before routing begins),
+# not inside on_startup. We mkdir here so the directory always exists when the
+# mount is registered, even on a fresh checkout with no uploads yet.
+_upload_dir = Path(settings.LOCAL_UPLOAD_DIR)
+_upload_dir.mkdir(parents=True, exist_ok=True)
+app.mount("/uploads", StaticFiles(directory=str(_upload_dir)), name="uploads")
 
 
 @app.on_event("startup")
