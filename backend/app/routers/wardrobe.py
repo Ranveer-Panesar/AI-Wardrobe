@@ -78,6 +78,8 @@ async def upload_garment(
     except UnidentifiedImageError:
         raise HTTPException(status_code=400, detail="Could not read image file")
 
+
+
     # --- Classify ---
     category, category_confidence = classifier.classify_category(image)
     pattern, _ = classifier.classify_pattern(image)

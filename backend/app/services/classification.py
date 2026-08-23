@@ -43,6 +43,13 @@ class FashionClassifier:
         # keeps FastAPI startup fast and keeps these heavy deps out of the
         # way for anyone just running tests against a mocked classifier.
         import torch
+        import transformers.utils.import_utils
+        
+        # Monkey-patch transformers to disable torchvision. 
+        # torchvision C++ extensions are currently broken on Windows with Numpy 2.0
+        # and cause circular import errors. Fashion-CLIP works fine with PIL.
+        transformers.utils.import_utils._torchvision_available = False
+        
         from transformers import CLIPModel, CLIPProcessor
 
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
@@ -62,7 +69,7 @@ class FashionClassifier:
     ) -> tuple[str, float]:
         prompts = [template.format(label) for label in candidate_labels]
         inputs = self.processor(
-            text=prompts, images=image, return_tensors="pt", padding=True
+            text=prompts, images=[image], return_tensors="pt", padding=True
         ).to(self.device)
 
         with self._torch.no_grad():

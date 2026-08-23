@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>AI Wardrobe — Outfit Engine Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0a0a0f;
+      --surface: #13131a;
+      --surface2: #1c1c28;
+      --border: #2a2a3d;
+      --accent: #7c6ff7;
+      --accent2: #a78bfa;
+      --green: #4ade80;
+      --red: #f87171;
+      --yellow: #facc15;
+      --text: #e2e2f0;
+      --muted: #7f7f9e;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+
+    /* ── Header ── */
+    header {
+      background: linear-gradient(135deg, #1a1035 0%, #0f0f1a 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 24px 40px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    .logo { font-size: 28px; }
+    header h1 { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; }
+    header p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+    .status-pill {
+      margin-left: auto;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .status-pill.ok { background: rgba(74,222,128,.12); color: var(--green); border: 1px solid rgba(74,222,128,.25); }
+    .status-pill.err { background: rgba(248,113,113,.12); color: var(--red); border: 1px solid rgba(248,113,113,.25); }
+    .dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; animation: pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:.4} }
+
+    /* ── Layout ── */
+    .container { max-width: 1200px; margin: 0 auto; padding: 32px 40px; }
+    .grid { display: grid; grid-template-columns: 360px 1fr; gap: 24px; align-items: start; }
+
+    /* ── Cards ── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+    .card-header {
+      padding: 18px 22px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .card-header h2 { font-size: 15px; font-weight: 600; }
+    .card-header .icon { font-size: 18px; }
+    .card-body { padding: 22px; }
+
+    /* ── Auth Form ── */
+    label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; font-weight: 500; letter-spacing: 0.5px; text-transform: uppercase; }
+    input {
+      width: 100%;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 14px;
+      color: var(--text);
+      font-size: 14px;
+      font-family: 'Inter', sans-serif;
+      margin-bottom: 16px;
+      transition: border-color .2s;
+      outline: none;
+    }
+    input:focus { border-color: var(--accent); }
+
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border-radius: 10px;
+      border: none;
+      font-size: 14px;
+      font-weight: 600;
+      font-family: 'Inter', sans-serif;
+      cursor: pointer;
+      transition: all .2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent), #5b56d4);
+      color: white;
+    }
+    .btn-primary:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(124,111,247,.3); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-primary:disabled { opacity: .5; cursor: not-allowed; transform: none; box-shadow: none; }
+    .btn-secondary {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      margin-top: 10px;
+    }
+    .btn-secondary:hover { border-color: var(--accent); }
+    .btn-secondary:disabled { opacity: .4; cursor: not-allowed; }
+
+    /* count control */
+    .count-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .count-row input {
+      width: 70px;
+      text-align: center;
+      margin-bottom: 0;
+    }
+    .count-row label { margin-bottom: 0; white-space: nowrap; }
+
+    /* ── Token display ── */
+    .token-box {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 11px;
+      font-family: monospace;
+      color: var(--muted);
+      word-break: break-all;
+      margin-top: 12px;
+      display: none;
+    }
+
+    /* ── Wardrobe Grid ── */
+    .wardrobe-grid { display: flex; flex-direction: column; gap: 8px; }
+    .garment-row {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 14px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: slideIn .3s ease;
+    }
+    @keyframes slideIn { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+    .color-dots { display: flex; gap: 4px; }
+    .color-dot { width: 14px; height: 14px; border-radius: 50%; border: 1.5px solid rgba(255,255,255,.15); flex-shrink: 0; }
+    .garment-info { flex: 1; min-width: 0; }
+    .garment-name { font-size: 13px; font-weight: 500; text-transform: capitalize; }
+    .garment-tags { display: flex; gap: 5px; margin-top: 3px; flex-wrap: wrap; }
+    .tag {
+      font-size: 10px;
+      padding: 2px 7px;
+      border-radius: 999px;
+      font-weight: 500;
+    }
+    .tag-formality { background: rgba(124,111,247,.15); color: var(--accent2); }
+    .tag-pattern { background: rgba(250,204,21,.1); color: var(--yellow); }
+
+    /* ── Outfit Cards ── */
+    .outfits-list { display: flex; flex-direction: column; gap: 14px; }
+    .outfit-card {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      animation: slideIn .4s ease both;
+      position: relative;
+      overflow: hidden;
+    }
+    .outfit-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent), var(--accent2));
+      opacity: 0;
+      transition: opacity .3s;
+    }
+    .outfit-card:hover::before { opacity: 1; }
+    .outfit-rank {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+    .outfit-top-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+    .score-ring {
+      width: 56px;
+      height: 56px;
+      flex-shrink: 0;
+    }
+    .outfit-meta { flex: 1; }
+    .outfit-score-label { font-size: 22px; font-weight: 800; letter-spacing: -1px; }
+    .outfit-garment-count { font-size: 12px; color: var(--muted); margin-top: 2px; }
+    .outfit-dominant-style {
+      margin-left: auto;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .style-casual  { background: rgba(74,222,128,.12);  color: #4ade80; border: 1px solid rgba(74,222,128,.2); }
+    .style-formal  { background: rgba(96,165,250,.12);  color: #60a5fa; border: 1px solid rgba(96,165,250,.2); }
+    .style-bold    { background: rgba(251,146,60,.12);  color: #fb923c; border: 1px solid rgba(251,146,60,.2); }
+    .style-retro   { background: rgba(250,204,21,.12);  color: #facc15; border: 1px solid rgba(250,204,21,.2); }
+
+    /* Style bars */
+    .style-bars { display: flex; flex-direction: column; gap: 6px; }
+    .bar-row { display: flex; align-items: center; gap: 10px; }
+    .bar-label { font-size: 11px; color: var(--muted); width: 46px; text-transform: capitalize; }
+    .bar-track { flex: 1; height: 5px; background: rgba(255,255,255,.08); border-radius: 999px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 999px; transition: width .8s cubic-bezier(.23,1,.32,1); }
+    .bar-val { font-size: 10px; color: var(--muted); width: 32px; text-align: right; }
+
+    /* Garment pills inside outfit */
+    .outfit-garments { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 12px; }
+    .garment-pill {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(124,111,247,.1);
+      border: 1px solid rgba(124,111,247,.2);
+      color: var(--accent2);
+      text-transform: capitalize;
+    }
+
+    /* Score ring SVG */
+    .ring-circle { transition: stroke-dashoffset 1s cubic-bezier(.23,1,.32,1); }
+
+    /* ── Empty / Loading states ── */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--muted);
+    }
+    .empty-state .icon { font-size: 36px; margin-bottom: 10px; display: block; }
+    .empty-state p { font-size: 13px; line-height: 1.6; }
+
+    .spinner {
+      width: 24px; height: 24px;
+      border: 3px solid rgba(124,111,247,.2);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Alert ── */
+    .alert {
+      padding: 12px 16px;
+      border-radius: 10px;
+      font-size: 13px;
+      margin-top: 12px;
+      display: none;
+    }
+    .alert.error { background: rgba(248,113,113,.1); border: 1px solid rgba(248,113,113,.2); color: var(--red); }
+    .alert.success { background: rgba(74,222,128,.1); border: 1px solid rgba(74,222,128,.2); color: var(--green); }
+
+    .divider { height: 1px; background: var(--border); margin: 16px 0; }
+
+    /* ── API Docs link ── */
+    .docs-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--accent);
+      font-size: 12px;
+      text-decoration: none;
+      padding: 6px 12px;
+      border: 1px solid rgba(124,111,247,.3);
+      border-radius: 8px;
+      transition: all .2s;
+    }
+    .docs-link:hover { background: rgba(124,111,247,.1); }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">🧥</div>
+  <div>
+    <h1>AI Wardrobe — Outfit Engine</h1>
+    <p>Phase 3 · Rule-Based Combination Engine Demo</p>
+  </div>
+  <div id="server-status" class="status-pill err">
+    <span class="dot"></span>
+    <span>Checking server…</span>
+  </div>
+</header>
+
+<div class="container">
+  <div class="grid">
+
+    <!-- ── LEFT COLUMN ── -->
+    <div style="display:flex;flex-direction:column;gap:24px;">
+
+      <!-- Auth card -->
+      <div class="card">
+        <div class="card-header">
+          <span class="icon">🔐</span>
+          <h2>Login</h2>
+        </div>
+        <div class="card-body">
+          <label>Email</label>
+          <input id="email" type="email" value="demo@aiwardrobe.com" />
+          <label>Password</label>
+          <input id="password" type="password" value="demo1234" />
+          <button class="btn btn-primary" id="login-btn" onclick="doLogin()">
+            Sign in
+          </button>
+          <div id="login-alert" class="alert error"></div>
+          <div id="token-box" class="token-box"></div>
+        </div>
+      </div>
+
+      <!-- Upload card -->
+      <div class="card">
+        <div class="card-header">
+          <span class="icon">📷</span>
+          <h2>Upload Garment</h2>
+        </div>
+        <div class="card-body">
+          <input type="file" id="file-input" accept="image/*" style="padding: 6px; margin-bottom: 12px; font-size: 13px;" />
+          <button class="btn btn-primary" id="upload-btn" onclick="uploadGarment()" disabled>
+            Upload & Classify
+          </button>
+          <div id="upload-alert" class="alert error"></div>
+        </div>
+      </div>
+
+      <!-- Generate card -->
+      <div class="card">
+        <div class="card-header">
+          <span class="icon">✨</span>
+          <h2>Generate Outfits</h2>
+        </div>
+        <div class="card-body">
+          <div class="count-row">
+            <label>Outfits to generate</label>
+            <input id="count" type="number" value="5" min="1" max="20" />
+          </div>
+          <button class="btn btn-primary" id="gen-btn" onclick="doGenerate()" disabled>
+            Run Engine
+          </button>
+          <button class="btn btn-secondary" id="wardrobe-btn" onclick="loadWardrobe()" disabled>
+            Load Wardrobe
+          </button>
+          <div id="gen-alert" class="alert error"></div>
+          <div class="divider"></div>
+          <a class="docs-link" href="http://localhost:8000/docs" target="_blank">
+            📖 Swagger UI
+          </a>
+        </div>
+      </div>
+
+      <!-- Wardrobe -->
+      <div class="card">
+        <div class="card-header">
+          <span class="icon">👔</span>
+          <h2>Wardrobe</h2>
+          <span id="wardrobe-count" style="margin-left:auto;font-size:12px;color:var(--muted)"></span>
+        </div>
+        <div class="card-body">
+          <div id="wardrobe-list" class="wardrobe-grid">
+            <div class="empty-state">
+              <span class="icon">👕</span>
+              <p>Login and click<br/>"Load Wardrobe" to see items</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ── RIGHT COLUMN — Outfits ── -->
+    <div class="card" style="min-height:400px;">
+      <div class="card-header">
+        <span class="icon">🎽</span>
+        <h2>Generated Outfits</h2>
+        <span id="outfit-count" style="margin-left:auto;font-size:12px;color:var(--muted)"></span>
+      </div>
+      <div class="card-body">
+        <div id="outfits-list" class="outfits-list">
+          <div class="empty-state">
+            <span class="icon">🤖</span>
+            <p>The outfit engine will score every valid<br/>combination of your garments by colour<br/>harmony, formality, patterns &amp; structure.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+const BASE = 'http://localhost:8000'
+let token = null
+let wardrobeItems = []
+
+// ── Server health check ──
+async function checkServer() {
+  try {
+    const r = await fetch(`${BASE}/health`)
+    const pill = document.getElementById('server-status')
+    if (r.ok) {
+      pill.className = 'status-pill ok'
+      pill.innerHTML = '<span class="dot"></span><span>Server online</span>'
+    } else { throw new Error() }
+  } catch {
+    const pill = document.getElementById('server-status')
+    pill.className = 'status-pill err'
+    pill.innerHTML = '<span class="dot"></span><span>Server offline</span>'
+  }
+}
+checkServer()
+setInterval(checkServer, 5000)
+
+// ── Auth ──
+async function doLogin() {
+  const btn = document.getElementById('login-btn')
+  btn.disabled = true
+  btn.innerHTML = '<div class="spinner"></div>'
+  hideAlert('login-alert')
+
+  try {
+    const r = await fetch(`${BASE}/auth/login`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value,
+      }),
+    })
+    const data = await r.json()
+    if (!r.ok) throw new Error(data.detail || 'Login failed')
+
+    token = data.access_token
+    const box = document.getElementById('token-box')
+    box.style.display = 'block'
+    box.textContent = `Bearer ${token.slice(0, 40)}…`
+
+    document.getElementById('gen-btn').disabled = false
+    document.getElementById('wardrobe-btn').disabled = false
+    document.getElementById('upload-btn').disabled = false
+
+    btn.innerHTML = '✓ Logged in'
+    btn.style.background = 'linear-gradient(135deg,#166534,#15803d)'
+
+    // Auto-load wardrobe
+    await loadWardrobe()
+  } catch(e) {
+    showAlert('login-alert', e.message)
+    btn.disabled = false
+    btn.innerHTML = 'Sign in'
+  }
+}
+
+// ── Wardrobe ──
+async function loadWardrobe() {
+  const listEl = document.getElementById('wardrobe-list')
+  listEl.innerHTML = '<div style="display:flex;justify-content:center;padding:20px"><div class="spinner"></div></div>'
+
+  try {
+    const r = await fetch(`${BASE}/wardrobe/items`, {headers: {Authorization: `Bearer ${token}`}})
+    const data = await r.json()
+    wardrobeItems = data.items || []
+
+    document.getElementById('wardrobe-count').textContent = `${wardrobeItems.length} items`
+
+    if (!wardrobeItems.length) {
+      listEl.innerHTML = '<div class="empty-state"><span class="icon">👕</span><p>No garments — run demo_seed.py first</p></div>'
+      return
+    }
+
+    listEl.innerHTML = wardrobeItems.map(g => `
+      <div class="garment-row">
+        <div class="color-dots">
+          ${(g.dominant_colors||[]).slice(0,3).map(c=>`<div class="color-dot" style="background:${c}" title="${c}"></div>`).join('')}
+        </div>
+        <div class="garment-info">
+          <div class="garment-name">${g.category}</div>
+          <div class="garment-tags">
+            <span class="tag tag-formality">${g.formality}</span>
+            <span class="tag tag-pattern">${g.pattern}</span>
+          </div>
+        </div>
+      </div>
+    `).join('')
+  } catch(e) {
+    listEl.innerHTML = `<div class="empty-state"><p style="color:var(--red)">${e.message}</p></div>`
+  }
+}
+
+// ── Upload ──
+async function uploadGarment() {
+  const fileInput = document.getElementById('file-input')
+  const file = fileInput.files[0]
+  if (!file) {
+    showAlert('upload-alert', 'Please select an image file first.')
+    return
+  }
+
+  const btn = document.getElementById('upload-btn')
+  btn.disabled = true
+  btn.innerHTML = '<div class="spinner"></div> Uploading...'
+  hideAlert('upload-alert')
+
+  const formData = new FormData()
+  formData.append('file', file)
+
+  try {
+    const r = await fetch(`${BASE}/wardrobe/items`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}` },
+      body: formData,
+    })
+    const data = await r.json()
+    if (!r.ok) throw new Error(data.detail || 'Upload failed')
+    
+    fileInput.value = ''
+    btn.innerHTML = '✓ Uploaded'
+    btn.style.background = 'linear-gradient(135deg,#166534,#15803d)'
+    
+    // Reload wardrobe to show the new item
+    await loadWardrobe()
+    
+    setTimeout(() => {
+      btn.innerHTML = 'Upload & Classify'
+      btn.style.background = ''
+      btn.disabled = false
+    }, 2000)
+  } catch(e) {
+    showAlert('upload-alert', e.message)
+    btn.disabled = false
+    btn.innerHTML = 'Upload & Classify'
+  }
+}
+
+// ── Generate outfits ──
+async function doGenerate() {
+  const btn = document.getElementById('gen-btn')
+  btn.disabled = true
+  btn.innerHTML = '<div class="spinner"></div> Running engine…'
+  hideAlert('gen-alert')
+
+  const outfitsEl = document.getElementById('outfits-list')
+  outfitsEl.innerHTML = '<div style="display:flex;justify-content:center;padding:40px"><div class="spinner"></div></div>'
+
+  try {
+    const count = parseInt(document.getElementById('count').value) || 5
+    const r = await fetch(`${BASE}/outfits/generate`, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json', Authorization: `Bearer ${token}`},
+      body: JSON.stringify({count}),
+    })
+    const data = await r.json()
+    if (!r.ok) throw new Error(data.detail || 'Generation failed')
+
+    const outfits = data.outfits || []
+    document.getElementById('outfit-count').textContent = `${outfits.length} combos`
+
+    if (!outfits.length) {
+      outfitsEl.innerHTML = '<div class="empty-state"><span class="icon">🤔</span><p>No valid combos found.<br/>Make sure you have tops + bottoms or dresses.</p></div>'
+      return
+    }
+
+    // Build garment category lookup by ID
+    const garmentById = {}
+    wardrobeItems.forEach(g => { garmentById[g.id] = g })
+
+    const STYLE_COLORS = {casual:'#4ade80',formal:'#60a5fa',bold:'#fb923c',retro:'#facc15'}
+    const BAR_COLORS = {casual:'#4ade80',formal:'#60a5fa',bold:'#fb923c',retro:'#facc15'}
+
+    outfitsEl.innerHTML = outfits.map((o, i) => {
+      const pct = Math.round(o.score * 100)
+      const r = 24; const circ = 2 * Math.PI * r
+      const dash = circ - (circ * o.score)
+      const topStyle = Object.entries(o.style_tags).sort((a,b)=>b[1]-a[1])[0][0]
+      const garmentLabels = o.garment_ids.map(id => garmentById[id]?.category || id.slice(0,8)).join(', ')
+
+      const bars = Object.entries(o.style_tags).map(([k,v]) => `
+        <div class="bar-row">
+          <span class="bar-label">${k}</span>
+          <div class="bar-track"><div class="bar-fill" style="width:${Math.round(v*100)}%;background:${BAR_COLORS[k]||'#7c6ff7'}"></div></div>
+          <span class="bar-val">${Math.round(v*100)}%</span>
+        </div>
+      `).join('')
+
+      const pills = o.garment_ids.map(id => {
+        const g = garmentById[id]
+        return `<span class="garment-pill">${g?.category || id.slice(0,8)}</span>`
+      }).join('')
+
+      return `
+        <div class="outfit-card" style="animation-delay:${i*0.07}s">
+          <div class="outfit-rank"># ${i+1} Outfit</div>
+          <div class="outfit-top-row">
+            <svg class="score-ring" viewBox="0 0 56 56">
+              <circle cx="28" cy="28" r="${r}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="5"/>
+              <circle class="ring-circle" cx="28" cy="28" r="${r}" fill="none"
+                stroke="url(#grad${i})" stroke-width="5"
+                stroke-dasharray="${circ}" stroke-dashoffset="${dash}"
+                stroke-linecap="round" transform="rotate(-90 28 28)"/>
+              <defs>
+                <linearGradient id="grad${i}" x1="0%" y1="0%" x2="100%" y2="0%">
+                  <stop offset="0%" stop-color="#7c6ff7"/>
+                  <stop offset="100%" stop-color="#a78bfa"/>
+                </linearGradient>
+              </defs>
+            </svg>
+            <div class="outfit-meta">
+              <div class="outfit-score-label">${pct}%</div>
+              <div class="outfit-garment-count">${o.garment_ids.length} garments · Score ${o.score.toFixed(4)}</div>
+            </div>
+            <div class="outfit-dominant-style style-${topStyle}">${topStyle}</div>
+          </div>
+          <div class="style-bars">${bars}</div>
+          <div class="outfit-garments">${pills}</div>
+        </div>
+      `
+    }).join('')
+
+  } catch(e) {
+    showAlert('gen-alert', e.message)
+    outfitsEl.innerHTML = '<div class="empty-state"><span class="icon">❌</span><p>Failed to generate outfits.</p></div>'
+  } finally {
+    btn.disabled = false
+    btn.innerHTML = 'Run Engine'
+  }
+}
+
+function showAlert(id, msg) {
+  const el = document.getElementById(id)
+  el.textContent = msg
+  el.style.display = 'block'
+}
+function hideAlert(id) {
+  document.getElementById(id).style.display = 'none'
+}
+</script>
+</body>
+</html>
