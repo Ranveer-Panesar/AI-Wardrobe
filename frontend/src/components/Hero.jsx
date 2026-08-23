@@ -1,7 +1,9 @@
 import React from 'react'
-
+import { useNavigate } from 'react-router-dom'
 
 const Hero = () => {
+    const navigate = useNavigate();
+    
     return (
         <div className='w-full px-6 md:px-20 py-2 flex flex-col md:flex-row items-center justify-between gap-16 md:bg-[url(/closet.jpg)] md:bg-cover md:bg-center md:bg-no-repeat  '>
             <div className='flex flex-col gap-3 items-start md:w-5/12'>
@@ -16,9 +18,9 @@ const Hero = () => {
                 </p>
 
                 <div className='flex items-center justify-center gap-4 mt-2 sm:flex-row'>
-                    <button className='bg-black text-white py-1.5  px-3  md:px-7 md:py-3.5 rounded-full text-sm font-medium flex items-center gap-2 whitespace-nowrap'>Scan My Closet</button>
+                    <button onClick={() => navigate('/closet')} className='bg-black text-white py-1.5  px-3  md:px-7 md:py-3.5 rounded-full text-sm font-medium flex items-center gap-2 whitespace-nowrap cursor-pointer'>Scan My Closet</button>
 
-                    <button className='bg-white text-black border border-gray-300 md:px-7 md:py-3.5 rounded-full text-sm font-medium flex items-center gap-2  px-3 py-1.5 whitespace-nowrap'>Watch Demo</button>
+                    <button className='bg-white text-black border border-gray-300 md:px-7 md:py-3.5 rounded-full text-sm font-medium flex items-center gap-2  px-3 py-1.5 whitespace-nowrap cursor-pointer'>Watch Demo</button>
                 </div>
 
                 <div className='flex items-center gap-3 mt-2'>
