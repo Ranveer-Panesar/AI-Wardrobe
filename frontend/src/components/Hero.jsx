@@ -1,4 +1,3 @@
-import React from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const Hero = () => {
@@ -20,7 +19,7 @@ const Hero = () => {
                 <div className='flex items-center justify-center gap-4 mt-2 sm:flex-row'>
                     <button onClick={() => navigate('/closet')} className='bg-black text-white py-1.5  px-3  md:px-7 md:py-3.5 rounded-full text-sm font-medium flex items-center gap-2 whitespace-nowrap cursor-pointer'>Scan My Closet</button>
 
-                    <button className='bg-white text-black border border-gray-300 md:px-7 md:py-3.5 rounded-full text-sm font-medium flex items-center gap-2  px-3 py-1.5 whitespace-nowrap cursor-pointer'>Watch Demo</button>
+                    <button className='bg-white text-black border border-gray-300 md:px-7 md:py-3.5 rounded-full text-sm font-medium flex items-center gap-2  px-3 py-1.5 whitespace-nowrap cursor-pointer' onClick={()=> navigate('/combinations')}>Use Me</button>
                 </div>
 
                 <div className='flex items-center gap-3 mt-2'>
