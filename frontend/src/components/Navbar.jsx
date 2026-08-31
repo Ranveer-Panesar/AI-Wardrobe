@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 
 const Navbar = () => {
@@ -6,7 +6,7 @@ const Navbar = () => {
     const navigate = useNavigate()
 
     return (
-        <div className='relative flex justify-between items-center py-4 px-8 bg-white z-50'>
+        <div className='fixed top-0 left-0 right-0 flex justify-between items-center py-4 px-8 bg-white z-50 shadow-sm'>
 
             <div onClick={() => navigate('/')} className='text-xl font-bold flex gap-2 items-center cursor-pointer'>
                 AI WARDROBE
@@ -22,6 +22,9 @@ const Navbar = () => {
             </div>
 
             <div className='flex items-center gap-4'>
+                <div className="w-9 h-9 rounded-full bg-gray-200 border border-gray-300 overflow-hidden shrink-0 cursor-pointer hover:opacity-80 transition-opacity">
+                    <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Felix" alt="User Profile" className="w-full h-full object-cover" />
+                </div>
                 <div onClick={() => navigate('/closet')} className='hidden md:block bg-black text-white px-5 py-2.5 rounded-full text-sm cursor-pointer hover:bg-gray-800 transition-colors'>
                     Get Started
                 </div>
@@ -43,6 +46,7 @@ const Navbar = () => {
                     <a href="#" className="text-gray-600 hover:text-black font-medium transition-colors">Styles</a>
                     <a href="#" className="text-gray-600 hover:text-black font-medium transition-colors">Pricing</a>
                     <a href="#" className="text-gray-600 hover:text-black font-medium transition-colors">About</a>
+
                     <div onClick={() => { setmenuOpen(false); navigate('/closet'); }} className='bg-black text-white px-5 py-3 rounded-full text-sm text-center font-medium cursor-pointer mt-2 hover:bg-gray-800 transition-colors'>
                         Get Started
                     </div>
