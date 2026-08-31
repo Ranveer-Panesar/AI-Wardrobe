@@ -45,6 +45,7 @@ const FindOutfit = () => {
 
 
             <div className='flex-1  p-6 md:p-10 overflow-y-auto'>
+
                 <div className="mb-8">
                     <h2 className="text-2xl md:text-3xl font-bold mb-1">Find Your Perfect Outfit</h2>
                     <p className="text-sm text-gray-500">Tell us about the look you need and get AI curated outfits from your closet.</p>
@@ -63,6 +64,7 @@ const FindOutfit = () => {
                     ))}
                 </div>
 
+                    {/* first column */}
                 <div className='w-full p-6 border border-gray-200 rounded-2xl grid grid-cols-3'>
                     {/* COLUMN 1: Occasion */}
                     <div className='flex flex-col'>
@@ -79,7 +81,15 @@ const FindOutfit = () => {
                             ))}
                         </div>
                     </div>
+
+                    {/* second column */}
+
+                    
                 </div>
+
+                
+
+                
 
             </div>
 
