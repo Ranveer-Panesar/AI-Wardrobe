@@ -1,9 +1,11 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 const Navbar = () => {
     const [menuOpen, setmenuOpen] = useState(false)
     const navigate = useNavigate()
+    const { user } = useAuth(); // Read the global user state
 
     return (
         <div className='fixed top-0 left-0 right-0 flex justify-between items-center py-4 px-8 bg-white z-50 shadow-sm'>
@@ -22,12 +24,28 @@ const Navbar = () => {
             </div>
 
             <div className='flex items-center gap-4'>
-                <div className="w-9 h-9 rounded-full bg-gray-200 border border-gray-300 overflow-hidden shrink-0 cursor-pointer hover:opacity-80 transition-opacity">
-                    <img src="https://api.dicebear.com/7.x/notionists/svg?seed=Felix" alt="User Profile" className="w-full h-full object-cover" />
-                </div>
-                <div onClick={() => navigate('/closet')} className='hidden md:block bg-black text-white px-5 py-2.5 rounded-full text-sm cursor-pointer hover:bg-gray-800 transition-colors'>
-                    Get Started
-                </div>
+                {user ? (
+                    <>
+                        <div onClick={() => navigate('/closet')} className="hidden md:block text-sm font-semibold text-gray-600 hover:text-black cursor-pointer transition-colors">
+                            My Closet
+                        </div>
+                        <div className="w-9 h-9 rounded-full bg-gray-200 border border-gray-300 overflow-hidden shrink-0 cursor-pointer hover:opacity-80 transition-opacity">
+                            <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+                        </div>
+                        <div onClick={() => navigate('/logout')} className='hidden md:block bg-[#7b2d3b] text-[#faf6ef] px-5 py-2.5 rounded-full text-sm font-medium cursor-pointer hover:bg-[#5e1f2b] transition-colors'>
+                            Log out
+                        </div>
+                    </>
+                ) : (
+                    <>
+                        <div onClick={() => navigate('/login')} className="hidden md:block text-sm font-semibold text-gray-600 hover:text-black cursor-pointer transition-colors">
+                            Log in
+                        </div>
+                        <div onClick={() => navigate('/login')} className='bg-black text-white px-5 py-2.5 rounded-full text-sm font-medium cursor-pointer hover:bg-gray-800 transition-colors'>
+                            Get Started
+                        </div>
+                    </>
+                )}
 
                 {/* Mobile Hamburger Icon */}
                 <button onClick={() => setmenuOpen(!menuOpen)} className='md:hidden p-2 text-gray-800 hover:bg-gray-100 rounded-md cursor-pointer'>
@@ -47,8 +65,35 @@ const Navbar = () => {
                     <a href="#" className="text-gray-600 hover:text-black font-medium transition-colors">Pricing</a>
                     <a href="#" className="text-gray-600 hover:text-black font-medium transition-colors">About</a>
 
-                    <div onClick={() => { setmenuOpen(false); navigate('/closet'); }} className='bg-black text-white px-5 py-3 rounded-full text-sm text-center font-medium cursor-pointer mt-2 hover:bg-gray-800 transition-colors'>
-                        Get Started
+                    <div className="flex flex-col gap-3 mt-2">
+                        {user ? (
+                            <>
+                                <div className="flex items-center gap-3 px-2 py-2 mb-2 border-b border-gray-100">
+                                    <div className="w-10 h-10 rounded-full bg-gray-200 border border-gray-300 overflow-hidden shrink-0">
+                                        <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
+                                    </div>
+                                    <div className="flex flex-col">
+                                        <span className="text-sm font-bold text-gray-900">{user.name || 'User'}</span>
+                                        <span className="text-xs text-gray-500">{user.email || 'Member'}</span>
+                                    </div>
+                                </div>
+                                <div onClick={() => { setmenuOpen(false); navigate('/closet'); }} className='w-full text-center text-sm font-semibold text-gray-700 hover:text-black cursor-pointer py-2.5 border border-gray-200 rounded-full transition-colors'>
+                                    My Closet
+                                </div>
+                                <div onClick={() => { setmenuOpen(false); navigate('/logout'); }} className='w-full bg-[#7b2d3b] text-[#faf6ef] px-5 py-3 rounded-full text-sm text-center font-medium cursor-pointer hover:bg-[#5e1f2b] transition-colors'>
+                                    Log out
+                                </div>
+                            </>
+                        ) : (
+                            <>
+                                <div onClick={() => { setmenuOpen(false); navigate('/login'); }} className='w-full text-center text-sm font-semibold text-gray-700 hover:text-black cursor-pointer py-2.5 border border-gray-200 rounded-full transition-colors'>
+                                    Log in
+                                </div>
+                                <div onClick={() => { setmenuOpen(false); navigate('/login'); }} className='w-full bg-black text-white px-5 py-3 rounded-full text-sm text-center font-medium cursor-pointer hover:bg-gray-800 transition-colors'>
+                                    Get Started
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             )}
