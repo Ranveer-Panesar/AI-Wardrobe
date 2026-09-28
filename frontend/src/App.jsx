@@ -1,12 +1,16 @@
 import { useState } from 'react'
 import { Routes, Route } from 'react-router-dom'
 
+import { AuthProvider } from './context/AuthContext'
+import ProtectedRoute from './components/ProtectedRoute'
 import Navbar from './components/Navbar.jsx'
 import Hero from './components/Hero.jsx'
 import HowItWorks from './components/HowItWorks.jsx'
 import ScanStyle from './components/ScanStyle.jsx'
 import SeeTheMagic from './components/SeeTheMagic.jsx'
 import DigitalCloset from './components/DigitalCloset.jsx'
+import LoginPage from './pages/LoginPage.jsx'
+import RegisterPage from './pages/RegisterPage.jsx'
 
 function LandingPage() {
   return (
@@ -21,13 +25,22 @@ function LandingPage() {
 
 function App() {
   return (
-    <>
+    <AuthProvider>
       <Navbar />
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/closet" element={<DigitalCloset />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route
+          path="/closet"
+          element={
+            <ProtectedRoute>
+              <DigitalCloset />
+            </ProtectedRoute>
+          }
+        />
       </Routes>
-    </>
+    </AuthProvider>
   )
 }
 
