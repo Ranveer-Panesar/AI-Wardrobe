@@ -17,8 +17,11 @@ python-multipart==0.0.9
 
 # Phase 2 — classification (Fashion-CLIP)
 transformers==4.44.2
+# IMPORTANT: torch 2.4.x binaries are compiled against numpy 1.x.
+# Do NOT upgrade numpy to >=2 — it will break torch at import time.
+numpy<2
 torch==2.4.1        # CPU build installs by default; see README for GPU/CUDA setup
-pillow==10.4.0
+pillow>=10.4.0      # color extraction uses PIL; >=10.4 is fine
 
 # Testing
 pytest==8.3.3

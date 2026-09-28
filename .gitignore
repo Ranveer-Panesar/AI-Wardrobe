@@ -9,6 +9,9 @@ __pycache__/
 *.pyc
 *.db
 backend/uploads/
+backend/renders/
+backend/test_render_output.jpg
+backend/test_render_e2e_ascii.py
 
 # --- Node (frontend) ---
 node_modules/
@@ -19,3 +22,5 @@ dist/
 .DS_Store
 .vscode/*
 !.vscode/extensions.json
+
+how-to-start.md
