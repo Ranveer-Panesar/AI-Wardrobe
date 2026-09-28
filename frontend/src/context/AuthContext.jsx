@@ -1,47 +1,54 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { login as apiLogin, signup as apiSignup } from '../api/auth';
+import React, { createContext, useState, useContext, useEffect } from 'react';
 
-const AuthContext = createContext(null);
+// 1. Create the Context
+const AuthContext = createContext();
 
-export function AuthProvider({ children }) {
-  const [token, setToken] = useState(() => localStorage.getItem('ai_wardrobe_token'));
+// 2. Custom hook so components can easily grab auth data
+export const useAuth = () => useContext(AuthContext);
 
-  // Listen for 401 events fired by the API client
+// 3. The Provider that will wrap the App
+export const AuthProvider = ({ children }) => {
+  const [user, setUser] = useState(null);
+
+  // Check if a user was already logged in (persists after refresh)
   useEffect(() => {
-    const handleLogout = () => {
-      setToken(null);
-      localStorage.removeItem('ai_wardrobe_token');
+    const storedUser = localStorage.getItem('ai_wardrobe_user');
+    if (storedUser) {
+      setUser(JSON.parse(storedUser));
+    }
+  }, []);
+
+  // Login function
+  const login = (userData) => {
+    // Generate a default profile picture if one isn't provided
+    const avatar = userData.avatar || `https://api.dicebear.com/7.x/notionists/svg?seed=${userData.name || 'User'}`;
+    
+    const fullUser = {
+      ...userData,
+      avatar: avatar
     };
-    window.addEventListener('auth:logout', handleLogout);
-    return () => window.removeEventListener('auth:logout', handleLogout);
-  }, []);
 
-  const login = useCallback(async (email, password) => {
-    const data = await apiLogin(email, password);
-    localStorage.setItem('ai_wardrobe_token', data.access_token);
-    setToken(data.access_token);
-  }, []);
+    setUser(fullUser);
+    localStorage.setItem('ai_wardrobe_user', JSON.stringify(fullUser));
+  };
 
-  const signup = useCallback(async (email, phone, password) => {
-    await apiSignup(email, phone, password);
-    // Auto-login after sign up
-    await login(email, password);
-  }, [login]);
+  // Update profile picture function (for future settings page)
+  const updateProfilePicture = (newAvatarUrl) => {
+    if (!user) return;
+    const updatedUser = { ...user, avatar: newAvatarUrl };
+    setUser(updatedUser);
+    localStorage.setItem('ai_wardrobe_user', JSON.stringify(updatedUser));
+  };
 
-  const logout = useCallback(() => {
-    localStorage.removeItem('ai_wardrobe_token');
-    setToken(null);
-  }, []);
+  // Logout function
+  const logout = () => {
+    setUser(null);
+    localStorage.removeItem('ai_wardrobe_user');
+  };
 
   return (
-    <AuthContext.Provider value={{ token, isLoggedIn: !!token, login, signup, logout }}>
+    <AuthContext.Provider value={{ user, login, logout, updateProfilePicture }}>
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used inside <AuthProvider>');
-  return ctx;
-}
+};
