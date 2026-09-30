@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getItems, resolveImageUrl } from '../api/wardrobe';
+import { getItems, resolveImageUrl, generateSyntheticCloset } from '../api/wardrobe';
 import { getOutfitRecommendations, startOutfitRender, pollRenderJob } from '../api/render';
 
 /* ──────────────────────────────────────────────
@@ -321,6 +321,7 @@ const FindOutfit = () => {
   const [genError, setGenError]               = useState('');
   const [generated, setGenerated]             = useState(false);
   const [vtonOutfit, setVtonOutfit]           = useState(null);
+  const [seedingCloset, setSeedingCloset]     = useState(false);
 
   useEffect(() => {
     getItems()
@@ -328,6 +329,20 @@ const FindOutfit = () => {
       .catch(() => {})
       .finally(() => setWardrobeLoading(false));
   }, []);
+
+  const handleSeedCloset = async () => {
+    setSeedingCloset(true);
+    setGenError('');
+    try {
+      await generateSyntheticCloset(false, 16);
+      const data = await getItems();
+      setWardrobeItems(data.items || []);
+    } catch (e) {
+      setGenError(e.message || 'Failed to seed synthetic closet');
+    } finally {
+      setSeedingCloset(false);
+    }
+  };
 
   const handleGenerate = async () => {
     setGenerating(true);
@@ -361,27 +376,64 @@ const FindOutfit = () => {
       <div className="max-w-5xl mx-auto px-4 py-8 md:py-12">
 
         {/* Page header */}
-        <div className="mb-8">
-          <p className="text-xs font-bold uppercase tracking-widest text-[#7b2d3b] mb-2">AI Stylist</p>
-          <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Find Your Perfect Outfit</h1>
-          <p className="text-sm text-gray-500 mt-2">
-            {wardrobeLoading
-              ? 'Loading your wardrobe…'
-              : `Scanning ${wardrobeItems.length} item${wardrobeItems.length !== 1 ? 's' : ''} in your digital closet.`
-            }
-          </p>
+        <div className="flex flex-wrap items-center justify-between gap-4 mb-8">
+          <div>
+            <p className="text-xs font-bold uppercase tracking-widest text-[#7b2d3b] mb-2">AI Stylist</p>
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight">Find Your Perfect Outfit</h1>
+            <p className="text-sm text-gray-500 mt-2">
+              {wardrobeLoading
+                ? 'Loading your wardrobe…'
+                : `Scanning ${wardrobeItems.length} item${wardrobeItems.length !== 1 ? 's' : ''} in your digital closet.`
+              }
+            </p>
+          </div>
+          <button
+            onClick={handleSeedCloset}
+            disabled={seedingCloset}
+            className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-[#7b2d3b]/30 text-[#7b2d3b] hover:bg-[#7b2d3b]/5 text-xs font-bold transition-all shadow-sm cursor-pointer disabled:opacity-50"
+            title="Populate test garments from clothing dataset"
+          >
+            {seedingCloset ? (
+              <>
+                <svg className="animate-spin w-3.5 h-3.5 text-[#7b2d3b]" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                </svg>
+                <span>Seeding Synthetic Closet…</span>
+              </>
+            ) : (
+              <>
+                <span>⚡</span>
+                <span>Load Synthetic Closet</span>
+              </>
+            )}
+          </button>
         </div>
 
         {/* Empty wardrobe prompt */}
         {!wardrobeLoading && wardrobeItems.length === 0 && (
-          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-8 flex items-start gap-3">
-            <span className="text-2xl">👗</span>
-            <div>
+          <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5 mb-8 flex items-start gap-4">
+            <span className="text-3xl">👗</span>
+            <div className="flex-1">
               <p className="font-semibold text-amber-800 text-sm">Your closet is empty</p>
               <p className="text-xs text-amber-600 mt-0.5">
-                <button onClick={() => navigate('/closet')} className="underline cursor-pointer">Upload garments to your closet</button>{' '}
-                first so the AI has something to work with.
+                Upload garments to your closet, or generate a synthetic closet from the clothing dataset to test the AI stylist right now.
               </p>
+              <div className="mt-3 flex gap-2">
+                <button
+                  onClick={handleSeedCloset}
+                  disabled={seedingCloset}
+                  className="px-3.5 py-1.5 rounded-xl bg-[#7b2d3b] text-white text-xs font-semibold hover:bg-[#5e1f2b] transition-all cursor-pointer shadow-sm disabled:opacity-50"
+                >
+                  {seedingCloset ? 'Classifying Dataset Items…' : '✨ Generate Synthetic Closet'}
+                </button>
+                <button
+                  onClick={() => navigate('/closet')}
+                  className="px-3.5 py-1.5 rounded-xl bg-white border border-amber-300 text-amber-800 text-xs font-semibold hover:bg-amber-100 transition-all cursor-pointer"
+                >
+                  Upload Manually
+                </button>
+              </div>
             </div>
           </div>
         )}

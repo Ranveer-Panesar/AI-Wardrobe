@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { getItems, uploadItem, deleteItem, resolveImageUrl } from '../api/wardrobe';
+import { getItems, uploadItem, deleteItem, resolveImageUrl, generateSyntheticCloset } from '../api/wardrobe';
 import { startMannequinRender, pollRenderJob } from '../api/render';
 
 /* ──────────────────────────────────────────────
@@ -241,6 +241,24 @@ const DigitalCloset = () => {
   const [vtonItem, setVtonItem] = useState(null);
   const [deleteConfirm, setDeleteConfirm] = useState(null);
   const [uploadError, setUploadError] = useState('');
+  const [seeding, setSeeding] = useState(false);
+  const [seedSuccess, setSeedSuccess] = useState('');
+
+  const handleGenerateSynthetic = async (replace = false) => {
+    setSeeding(true);
+    setUploadError('');
+    setSeedSuccess('');
+    try {
+      const res = await generateSyntheticCloset(replace, 16);
+      setSeedSuccess(`Generated ${res.total || res.items?.length || 16} synthetic items through the AI classification pipeline!`);
+      await loadItems();
+      setTimeout(() => setSeedSuccess(''), 5000);
+    } catch (e) {
+      setUploadError(e.message || 'Failed to generate synthetic closet');
+    } finally {
+      setSeeding(false);
+    }
+  };
 
   const loadItems = useCallback(async () => {
     setLoading(true);
@@ -339,21 +357,52 @@ const DigitalCloset = () => {
           </div>
 
           {/* Header */}
-          <div className="flex items-center justify-between mb-6">
+          <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
             <div>
               <h2 className="text-2xl font-bold">{activeCategory}</h2>
               <p className="text-sm text-gray-400 mt-0.5">{filtered.length} item{filtered.length !== 1 ? 's' : ''}</p>
             </div>
-            <div className="md:hidden">
-              <select
-                value={activeCategory}
-                onChange={e => setActiveCategory(e.target.value)}
-                className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:border-[#7b2d3b] cursor-pointer"
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => handleGenerateSynthetic(false)}
+                disabled={seeding}
+                className="flex items-center gap-2 px-3.5 py-2 rounded-xl bg-white border border-[#7b2d3b]/30 text-[#7b2d3b] hover:bg-[#7b2d3b]/5 text-xs font-bold transition-all shadow-sm cursor-pointer disabled:opacity-50"
+                title="Populate test items from fashion dataset running through the AI classifier"
               >
-                {categories.map(c => <option key={c}>{c}</option>)}
-              </select>
+                {seeding ? (
+                  <>
+                    <svg className="animate-spin w-3.5 h-3.5 text-[#7b2d3b]" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                    </svg>
+                    <span>Classifying Dataset Items…</span>
+                  </>
+                ) : (
+                  <>
+                    <span>⚡</span>
+                    <span>Generate Synthetic Closet</span>
+                  </>
+                )}
+              </button>
+              <div className="md:hidden">
+                <select
+                  value={activeCategory}
+                  onChange={e => setActiveCategory(e.target.value)}
+                  className="border border-gray-200 rounded-xl px-3 py-2 text-sm text-gray-700 bg-white focus:outline-none focus:border-[#7b2d3b] cursor-pointer"
+                >
+                  {categories.map(c => <option key={c}>{c}</option>)}
+                </select>
+              </div>
             </div>
           </div>
+
+          {/* Success Banner */}
+          {seedSuccess && (
+            <div className="bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs px-4 py-2.5 rounded-xl mb-4 flex items-center gap-2">
+              <span>🎉</span>
+              <span className="font-medium">{seedSuccess}</span>
+            </div>
+          )}
 
           {/* State: Loading */}
           {loading && (
@@ -377,12 +426,19 @@ const DigitalCloset = () => {
 
           {/* State: Empty */}
           {!loading && !error && filtered.length === 0 && (
-            <div className="flex flex-col items-center justify-center py-24 gap-4 text-gray-400">
+            <div className="flex flex-col items-center justify-center py-20 gap-4 text-gray-400">
               <span className="text-5xl">🧺</span>
               <p className="text-base font-semibold text-gray-600">Your closet is empty</p>
-              <p className="text-sm text-center max-w-xs">
-                Upload a photo of any garment above — AI will auto-tag the category, color, and occasion.
+              <p className="text-sm text-center max-w-xs text-gray-500">
+                Upload a photo of any garment above, or generate a synthetic closet from the clothing dataset to test the AI stylist algorithm immediately.
               </p>
+              <button
+                onClick={() => handleGenerateSynthetic(false)}
+                disabled={seeding}
+                className="mt-2 flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#7b2d3b] text-white hover:bg-[#5e1f2b] text-xs font-bold transition-all shadow-sm cursor-pointer disabled:opacity-50"
+              >
+                {seeding ? 'Classifying Dataset Items…' : '✨ Generate Synthetic Closet (Dataset)'}
+              </button>
             </div>
           )}
 

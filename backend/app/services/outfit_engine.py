@@ -264,19 +264,24 @@ _OCCASION_AFFINITY: dict[str, dict[str, float]] = {
         "tank top": 0.95,
         "hoodie": 0.85,
         "sweatshirt": 0.80,
-        "polo shirt": 0.75,     # Tennis, golf
         "sneakers": 1.0,
-        "jacket": 0.50,         # Windbreaker/track jacket
-        "jeans": 0.20,          # Denim is NOT athletic
-        "casual shirt": 0.10,   # Button down is not for sports
-        "sweater": 0.15,
-        "skirt": 0.40,
-        "dress": 0.05,
-        "formal trousers": 0.01,# STRICT CONFLICT: No suit pants in sport!
-        "formal shirt": 0.01,   # STRICT CONFLICT: No formal shirts in sport!
-        "blazer": 0.01,         # STRICT CONFLICT: Absolutely NO blazers in sport!
-        "coat": 0.01,
-        "suit": 0.01,
+        "jacket": 0.50,          # Windbreaker/track jacket
+        "polo shirt": 0.35,      # Tennis/golf acceptable but penalized vs active tees
+        "jeans": 0.005,          # HEAVILY PENALIZED: Denim is strictly prohibited in sport
+        "casual shirt": 0.005,   # HEAVILY PENALIZED: Button-up shirts are strictly prohibited in sport
+        "formal shirt": 0.001,   # HEAVILY PENALIZED: Dress shirts are strictly prohibited in sport
+        "shirt": 0.005,          # HEAVILY PENALIZED
+        "button-down": 0.005,    # HEAVILY PENALIZED
+        "sweater": 0.02,         # Heavy penalty
+        "cardigan": 0.005,       # HEAVILY PENALIZED
+        "skirt": 0.20,           # Tennis skirt only
+        "dress": 0.005,          # STRICT CONFLICT
+        "formal trousers": 0.001,# STRICT CONFLICT: No suit pants in sport!
+        "trousers": 0.005,       # STRICT CONFLICT
+        "chinos": 0.005,         # STRICT CONFLICT
+        "blazer": 0.001,         # STRICT CONFLICT: Absolutely NO blazers in sport!
+        "coat": 0.001,
+        "suit": 0.001,
     },
     "casual": {
         "t-shirt": 1.0,
@@ -312,12 +317,12 @@ _OCCASION_AFFINITY: dict[str, dict[str, float]] = {
         "dress": 0.85,
         "coat": 0.90,
         "jacket": 0.50,
-        "jeans": 0.45,
-        "t-shirt": 0.30,
-        "hoodie": 0.05,         # STRICT CONFLICT
-        "shorts": 0.01,         # STRICT CONFLICT: No shorts in business!
-        "joggers": 0.01,        # STRICT CONFLICT: No joggers in business!
-        "sweatpants": 0.01,
+        "jeans": 0.40,
+        "t-shirt": 0.20,
+        "hoodie": 0.01,         # STRICT CONFLICT
+        "shorts": 0.005,        # STRICT CONFLICT: No shorts in business!
+        "joggers": 0.005,       # STRICT CONFLICT: No joggers in business!
+        "sweatpants": 0.005,
     },
     "formal": {
         "formal trousers": 1.0,
@@ -327,15 +332,15 @@ _OCCASION_AFFINITY: dict[str, dict[str, float]] = {
         "dress": 1.0,
         "coat": 0.90,
         "skirt": 0.85,
-        "sweater": 0.40,
-        "polo shirt": 0.30,
-        "casual shirt": 0.35,
-        "jeans": 0.10,          # STRICT CONFLICT: No jeans in formal!
-        "t-shirt": 0.05,        # STRICT CONFLICT: No tees in formal!
-        "hoodie": 0.01,         # STRICT CONFLICT
-        "shorts": 0.01,         # STRICT CONFLICT
-        "joggers": 0.01,        # STRICT CONFLICT
-        "sweatpants": 0.01,
+        "sweater": 0.35,
+        "polo shirt": 0.20,
+        "casual shirt": 0.25,
+        "jeans": 0.01,          # STRICT CONFLICT: No jeans in formal!
+        "t-shirt": 0.01,        # STRICT CONFLICT: No tees in formal!
+        "hoodie": 0.001,        # STRICT CONFLICT
+        "shorts": 0.001,        # STRICT CONFLICT
+        "joggers": 0.001,       # STRICT CONFLICT
+        "sweatpants": 0.001,
     },
     "evening": {
         "blazer": 1.0,
@@ -343,16 +348,16 @@ _OCCASION_AFFINITY: dict[str, dict[str, float]] = {
         "dress": 1.0,
         "formal shirt": 0.90,
         "casual shirt": 0.85,
-        "jeans": 0.70,
-        "polo shirt": 0.70,
+        "jeans": 0.65,
+        "polo shirt": 0.65,
         "sweater": 0.70,
         "jacket": 0.75,
         "coat": 0.85,
-        "t-shirt": 0.50,
+        "t-shirt": 0.45,
         "skirt": 0.85,
-        "shorts": 0.10,
-        "joggers": 0.05,
-        "hoodie": 0.20,
+        "shorts": 0.05,
+        "joggers": 0.01,
+        "hoodie": 0.10,
     },
     "wedding": {
         "suit": 1.0,
@@ -362,15 +367,15 @@ _OCCASION_AFFINITY: dict[str, dict[str, float]] = {
         "dress": 1.0,
         "coat": 0.85,
         "skirt": 0.80,
-        "polo shirt": 0.25,
-        "casual shirt": 0.30,
-        "sweater": 0.25,
-        "jeans": 0.05,          # STRICT CONFLICT
-        "t-shirt": 0.02,        # STRICT CONFLICT
-        "hoodie": 0.01,         # STRICT CONFLICT
-        "shorts": 0.01,         # STRICT CONFLICT
-        "joggers": 0.01,        # STRICT CONFLICT
-        "sweatpants": 0.01,
+        "polo shirt": 0.15,
+        "casual shirt": 0.20,
+        "sweater": 0.20,
+        "jeans": 0.005,         # STRICT CONFLICT
+        "t-shirt": 0.001,       # STRICT CONFLICT
+        "hoodie": 0.001,        # STRICT CONFLICT
+        "shorts": 0.001,        # STRICT CONFLICT
+        "joggers": 0.001,       # STRICT CONFLICT
+        "sweatpants": 0.001,
     },
 }
 
@@ -379,8 +384,8 @@ def occasion_affinity_score(garments: list["GarmentData"], target_occasion: str 
     """
     Calculate occasion alignment score and hard conflict multiplier.
     Returns: (affinity_score [0..1], conflict_multiplier [0..1]).
-    If any piece is severely clashing with the occasion (e.g. blazer in sport),
-    conflict_multiplier drops near 0 to prevent the combo from being recommended.
+    If any piece is severely clashing with the occasion (e.g. shirt or jeans in sport),
+    conflict_multiplier drops drastically to heavily penalize and disqualify the combination.
     """
     occ = target_occasion.lower().strip()
     if occ not in _OCCASION_AFFINITY:
@@ -402,19 +407,42 @@ def occasion_affinity_score(garments: list["GarmentData"], target_occasion: str 
 
         affinities.append(aff)
 
-        # Apply hard conflict if item is completely inappropriate
-        if aff < 0.10:
+        # Apply hard conflict if item affinity is below threshold
+        if aff <= 0.10:
             conflict_mult *= aff
 
         # Occasion vs formality mismatch
         formality = g.formality.lower().strip()
-        if occ in ("sport",) and formality == "formal":
-            conflict_mult *= 0.10  # formal item in sport is a hard disqualifier
+        if occ in ("sport",) and formality in ("formal", "smart casual"):
+            conflict_mult *= 0.10
         elif occ in ("formal", "wedding") and formality in ("very casual",):
-            conflict_mult *= 0.10  # gym/beachwear at formal wedding is disqualified
+            conflict_mult *= 0.01
+
+        # Direct explicit conflict penalties
+        if occ == "sport":
+            # Heavily penalize any jeans / denim
+            if any(term in cat for term in ("jean", "denim")):
+                conflict_mult *= 0.02
+            # Heavily penalize button-down, formal, casual, or dress shirts
+            if "shirt" in cat and "t-shirt" not in cat and "sweatshirt" not in cat:
+                if "polo" in cat:
+                    conflict_mult *= 0.40  # Polo is demoted in active sportswear
+                else:
+                    conflict_mult *= 0.02  # Shirts heavily penalized in sport
+            # Strictly disqualify blazers, suits, formal trousers, chinos, coats
+            if any(term in cat for term in ("trouser", "chino", "blazer", "suit", "coat", "slacks")):
+                conflict_mult *= 0.001
+
+        elif occ in ("formal", "wedding"):
+            if any(term in cat for term in ("jean", "denim", "short", "jogger", "sweatpant", "hoodie", "tee", "t-shirt")):
+                conflict_mult *= 0.02
+
+        elif occ == "business":
+            if any(term in cat for term in ("short", "jogger", "sweatpant", "hoodie")):
+                conflict_mult *= 0.01
 
     base_affinity = sum(affinities) / max(len(affinities), 1)
-    return base_affinity, max(0.001, conflict_mult)
+    return base_affinity, max(0.0001, conflict_mult)
 
 
 # ---------------------------------------------------------------------------
