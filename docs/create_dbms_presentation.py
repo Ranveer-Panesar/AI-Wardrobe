@@ -8,6 +8,7 @@ Highlights core Database Management System (DBMS) functions:
 - Hybrid Relational / JSON Document Storage
 """
 import os
+from pathlib import Path
 from pptx import Presentation
 from pptx.util import Inches, Pt
 from pptx.dml.color import RGBColor
@@ -531,28 +532,53 @@ def build_dbms_presentation():
 
     card_w = Inches(3.8)
     card_h = Inches(3.6)
+    assets_dir = Path(__file__).resolve().parent / "assets"
     cards = [
-        ("3NF Relational ER Architecture", Inches(0.6), "Normalized tables (Users, Garments, Outfits, RenderJobs) with 1:N cardinality, indexed foreign keys, and zero redundant storage."),
-        ("ACID Wardrobe Data Pipeline", Inches(4.766), "Interactive digital closet showing persistent garment records, dominant color JSON arrays, and instant cascading item deletions."),
-        ("Query & State Lifecycle Tracking", Inches(8.933), "Indexed relational queries generating ranked outfit sets and tracking asynchronous render job transitions (queued -> processing -> done).")
+        (
+            "3NF Relational ER Architecture",
+            Inches(0.6),
+            "Normalized tables (Users, Garments, Outfits, RenderJobs) with 1:N cardinality, indexed foreign keys, and zero redundant storage.",
+            assets_dir / "slide6_er_diagram.png",
+        ),
+        (
+            "ACID Wardrobe Data Pipeline",
+            Inches(4.766),
+            "Interactive digital closet showing persistent garment records, dominant color JSON arrays, and instant cascading item deletions.",
+            assets_dir / "slide6_digital_closet_db.png",
+        ),
+        (
+            "Query & State Lifecycle Tracking",
+            Inches(8.933),
+            "Indexed relational queries generating ranked outfit sets and tracking asynchronous render job transitions (queued -> processing -> done).",
+            assets_dir / "slide6_query_state_machine.png",
+        ),
     ]
 
-    for title, x_pos, desc in cards:
+    for title, x_pos, desc, img_path in cards:
         card = s6.shapes.add_shape(MSO_SHAPE.ROUNDED_RECTANGLE, x_pos, Inches(1.5), card_w, card_h)
         card.fill.solid()
         card.fill.fore_color.rgb = LIGHT_MINT
         card.line.fill.background()
 
-        inner = s6.shapes.add_shape(MSO_SHAPE.RECTANGLE, x_pos + Inches(0.2), Inches(1.7), card_w - Inches(0.4), Inches(2.2))
-        inner.fill.solid()
-        inner.fill.fore_color.rgb = WHITE
-        inner.line.color.rgb = MINT_BORDER
-        p_in = inner.text_frame.paragraphs[0]
-        p_in.text = f"[ Database Output / Schema ]\n\n{title}"
-        p_in.alignment = PP_ALIGN.CENTER
-        p_in.font.name = "Arial"
-        p_in.font.size = Pt(11)
-        p_in.font.color.rgb = MUTED_DARK
+        if img_path.exists():
+            s6.shapes.add_picture(
+                str(img_path),
+                x_pos + Inches(0.2),
+                Inches(1.7),
+                width=card_w - Inches(0.4),
+                height=Inches(2.2),
+            )
+        else:
+            inner = s6.shapes.add_shape(MSO_SHAPE.RECTANGLE, x_pos + Inches(0.2), Inches(1.7), card_w - Inches(0.4), Inches(2.2))
+            inner.fill.solid()
+            inner.fill.fore_color.rgb = WHITE
+            inner.line.color.rgb = MINT_BORDER
+            p_in = inner.text_frame.paragraphs[0]
+            p_in.text = f"[ Database Output / Schema ]\n\n{title}"
+            p_in.alignment = PP_ALIGN.CENTER
+            p_in.font.name = "Arial"
+            p_in.font.size = Pt(11)
+            p_in.font.color.rgb = MUTED_DARK
 
         tb_c = s6.shapes.add_textbox(x_pos + Inches(0.15), Inches(4.0), card_w - Inches(0.3), Inches(1.0))
         tf_c = tb_c.text_frame
