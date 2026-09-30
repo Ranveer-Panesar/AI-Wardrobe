@@ -2,7 +2,7 @@
 
 const SeeTheMagic = () => {
     return (
-        <div className="w-full px-6 py-16 md:py-24 max-w-6xl mx-auto">
+        <div id="features" className="w-full px-6 py-16 md:py-24 max-w-6xl mx-auto">
 
             {/* Main Wrapper: Stack on mobile, side-by-side on desktop */}
             <div className="flex flex-col lg:flex-row items-center gap-12 lg:gap-16">

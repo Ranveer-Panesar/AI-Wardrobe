@@ -36,7 +36,13 @@ _REQUEST_TIMEOUT_S = 300
 # Default mannequin reference — backend/Dummy/male-mannequins-500x500.png
 # Change this path (or add more dummies) without touching Colab at all.
 _DUMMY_DIR = Path(__file__).resolve().parents[3] / "Dummy"
-_DEFAULT_MANNEQUIN = _DUMMY_DIR / "male-mannequins-500x500.png"
+_DEFAULT_MANNEQUIN = (
+    _DUMMY_DIR / "Base_model_VTON.png"
+    if (_DUMMY_DIR / "Base_model_VTON.png").exists()
+    else _DUMMY_DIR / "default_model.jpg"
+    if (_DUMMY_DIR / "default_model.jpg").exists()
+    else _DUMMY_DIR / "male-mannequins-500x500.png"
+)
 
 
 # Target resolution for Colab inference — matches CatVTON's native size.
@@ -91,14 +97,21 @@ class ColabProvider(RenderProvider):
         self.base_url = colab_url.rstrip("/")
         self.render_dir = render_dir
         self.render_dir.mkdir(parents=True, exist_ok=True)
-        self._fallback = MockProvider(render_dir)
         # Pre-load mannequin bytes once at startup
         self._mannequin_bytes = _read_mannequin()
         log.info(
-            "ColabProvider ready — mannequin=%s (%d KB)",
+            "ColabProvider ready — target=%s  mannequin=%s (%d KB)",
+            self.base_url,
             _DEFAULT_MANNEQUIN.name,
             len(self._mannequin_bytes) // 1024,
         )
+        # Quick connectivity check
+        try:
+            import requests as _r
+            _r.get(f"{self.base_url}/health", timeout=3)
+            log.info("VTON server at %s is reachable ✓", self.base_url)
+        except Exception as _e:
+            log.warning("VTON server at %s not reachable yet: %s — will retry on first render", self.base_url, _e)
 
     # ------------------------------------------------------------------
     # Helpers
@@ -115,30 +128,27 @@ class ColabProvider(RenderProvider):
     # RenderProvider interface
     # ------------------------------------------------------------------
 
-    def try_on(self, garment_image_path: str, person_image_bytes: bytes, job_id: str) -> str:
+    def try_on(self, garment_image_path: str, person_image_bytes: bytes, job_id: str, garment_category: str = "upper_body") -> str:
         """
         POST multipart to Colab /try-on:
           - garment_image: garment file (pre-resized to 768×1024, ~200 KB)
           - person_image:  user/person photo bytes
+          - garment_category: used by VTON server to pick the correct mask
         """
         url = f"{self.base_url}/try-on"
-        try:
-            garment_bytes = _prepare_garment_file(garment_image_path)
-            log.info("try_on: garment=%d KB  person=%d KB",
-                     len(garment_bytes) // 1024, len(person_image_bytes) // 1024)
-            files = {
-                "garment_image": ("garment.jpg", garment_bytes,      "image/jpeg"),
-                "person_image":  ("person.jpg",  person_image_bytes, "image/jpeg"),
-            }
-            resp = requests.post(url, files=files, timeout=_REQUEST_TIMEOUT_S)
-            resp.raise_for_status()
-            return self._save_response_image(resp.content, job_id)
+        garment_bytes = _prepare_garment_file(garment_image_path)
+        log.info("try_on: garment=%d KB  person=%d KB  category=%s",
+                 len(garment_bytes) // 1024, len(person_image_bytes) // 1024, garment_category)
+        files = {
+            "garment_image": ("garment.jpg", garment_bytes,      "image/jpeg"),
+            "person_image":  ("person.jpg",  person_image_bytes, "image/jpeg"),
+        }
+        data = {"garment_category": garment_category}
+        resp = requests.post(url, files=files, data=data, timeout=_REQUEST_TIMEOUT_S)
+        resp.raise_for_status()
+        return self._save_response_image(resp.content, job_id)
 
-        except Exception as exc:
-            log.warning("ColabProvider.try_on failed (%s) — falling back to mock", exc)
-            return self._fallback.try_on(garment_image_path, person_image_bytes, job_id)
-
-    def mannequin(self, garment_image_path: str, job_id: str) -> str:
+    def mannequin(self, garment_image_path: str, job_id: str, garment_category: str = "upper_body") -> str:
         """
         Render a garment on the local mannequin dummy.
 
@@ -148,18 +158,14 @@ class ColabProvider(RenderProvider):
         Both images are pre-resized to 768×1024 before upload for faster inference.
         """
         url = f"{self.base_url}/try-on"
-        try:
-            garment_bytes = _prepare_garment_file(garment_image_path)
-            log.info("mannequin: garment=%d KB  mannequin=%d KB",
-                     len(garment_bytes) // 1024, len(self._mannequin_bytes) // 1024)
-            files = {
-                "garment_image": ("garment.jpg",   garment_bytes,        "image/jpeg"),
-                "person_image":  ("mannequin.jpg",  self._mannequin_bytes, "image/jpeg"),
-            }
-            resp = requests.post(url, files=files, timeout=_REQUEST_TIMEOUT_S)
-            resp.raise_for_status()
-            return self._save_response_image(resp.content, job_id)
-
-        except Exception as exc:
-            log.warning("ColabProvider.mannequin failed (%s) — falling back to mock", exc)
-            return self._fallback.mannequin(garment_image_path, job_id)
+        garment_bytes = _prepare_garment_file(garment_image_path)
+        log.info("mannequin: garment=%d KB  mannequin=%d KB  category=%s",
+                 len(garment_bytes) // 1024, len(self._mannequin_bytes) // 1024, garment_category)
+        files = {
+            "garment_image": ("garment.jpg",   garment_bytes,        "image/jpeg"),
+            "person_image":  ("mannequin.jpg",  self._mannequin_bytes, "image/jpeg"),
+        }
+        data = {"garment_category": garment_category}
+        resp = requests.post(url, files=files, data=data, timeout=_REQUEST_TIMEOUT_S)
+        resp.raise_for_status()
+        return self._save_response_image(resp.content, job_id)

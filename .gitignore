@@ -8,6 +8,8 @@ venv/
 __pycache__/
 *.pyc
 *.db
+*.db-journal
+*.sqlite
 backend/uploads/
 backend/renders/
 backend/test_render_output.jpg
@@ -24,3 +26,15 @@ dist/
 !.vscode/extensions.json
 
 how-to-start.md
+
+# --- VTON ML weights and local test artifacts ---
+ml-colab/CatVTON/
+*.pt
+*.pth
+*.bin
+*.safetensors
+test_*.png
+test_*.jpg
+scratch_*
+lower_mask_test.png
+upper_mask_test.png
