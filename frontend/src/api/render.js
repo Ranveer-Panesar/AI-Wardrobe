@@ -105,7 +105,13 @@ export async function pollRenderJob(jobId, onProgress, intervalMs = 2000, timeou
 export async function getOutfitRecommendations(payload = {}) {
   const res = await apiFetch('/outfits/generate', {
     method: 'POST',
-    body: JSON.stringify({ count: payload.count || 6 }),
+    body: JSON.stringify({
+      count: payload.count || 6,
+      occasion: payload.occasion || 'casual',
+      style: payload.style || null,
+      season: payload.season || null,
+      fit: payload.fit || null,
+    }),
   });
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));

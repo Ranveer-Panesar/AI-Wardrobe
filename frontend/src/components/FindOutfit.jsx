@@ -188,9 +188,9 @@ function OutfitCard({ outfit, wardrobeItems, rank, onTryOn }) {
     ? outfit.style_tags
     : outfit.style_tags && typeof outfit.style_tags === 'object'
       ? Object.entries(outfit.style_tags)
-          .filter(([_, val]) => typeof val === 'number' ? val >= 0.25 : true)
+          .filter(([key, val]) => key !== '_meta' && typeof val === 'number' && val >= 0.20)
           .sort((a, b) => b[1] - a[1])
-          .map(([key, val]) => `${key.charAt(0).toUpperCase() + key.slice(1)} ${typeof val === 'number' ? Math.round(val * 100) + '%' : ''}`)
+          .map(([key, val]) => `${key.charAt(0).toUpperCase() + key.slice(1)} ${Math.round(val * 100)}%`)
       : [];
 
   const reasoning = outfit.reasoning || (
@@ -220,7 +220,9 @@ function OutfitCard({ outfit, wardrobeItems, rank, onTryOn }) {
             </div>
             <div>
               <h3 className="font-bold text-gray-900 text-sm">{outfit.name || `Look #${rank}`}</h3>
-              <p className="text-xs text-gray-400 mt-0.5">{outfit.occasion || 'Coordinated Look'}</p>
+              <p className="text-xs text-gray-400 mt-0.5">
+                {outfit.occasion ? `${outfit.occasion.charAt(0).toUpperCase() + outfit.occasion.slice(1)} Curation` : 'Coordinated Look'}
+              </p>
             </div>
           </div>
           <div className="text-right">
@@ -334,7 +336,14 @@ const FindOutfit = () => {
     setOutfits([]);
 
     try {
-      const data = await getOutfitRecommendations({ count: 6 });
+      const seasonLabel = season.split(' ')[0];
+      const data = await getOutfitRecommendations({
+        count: 6,
+        occasion: occasion.toLowerCase(),
+        style,
+        season: seasonLabel,
+        fit,
+      });
       setOutfits(data.outfits || data.combinations || []);
       setGenerated(true);
     } catch (e) {
