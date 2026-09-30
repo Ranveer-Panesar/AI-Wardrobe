@@ -5,6 +5,8 @@
 
 # --- Python (backend) ---
 venv/
+.venv/
+*.venv
 __pycache__/
 *.pyc
 *.db
@@ -12,6 +14,8 @@ __pycache__/
 *.sqlite
 backend/uploads/
 backend/renders/
+uploads/
+renders/
 backend/test_render_output.jpg
 backend/test_render_e2e_ascii.py
 
@@ -24,8 +28,6 @@ dist/
 .DS_Store
 .vscode/*
 !.vscode/extensions.json
-
-how-to-start.md
 
 # --- VTON ML weights and local test artifacts ---
 ml-colab/CatVTON/

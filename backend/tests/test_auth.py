@@ -54,7 +54,7 @@ def _protected_test_route(user=Depends(get_current_user)):
     return {"id": str(user.id)}
 
 
-VALID_SIGNUP = {"email": "test@example.com", "phone": "+919876543210", "password": "secretpass123"}
+VALID_SIGNUP = {"email": "test@example.com", "phone": "+919876543210", "password": "Secret@123"}
 
 
 def test_signup_creates_user():
