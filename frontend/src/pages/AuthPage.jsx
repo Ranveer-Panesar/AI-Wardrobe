@@ -1,57 +1,76 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { login as apiLogin, signup as apiSignup } from '../api/auth';
 
 const AuthPage = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
+
   // --- Form & UI States ---
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail]               = useState('');
+  const [phone, setPhone]               = useState('');
+  const [password, setPassword]         = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [keepSignedIn, setKeepSignedIn] = useState(true);
-  
-  // Toggle between Sign In and Sign Up modes
-  const [isSignUp, setIsSignUp] = useState(false);
-  
-  // Loading state for submission
-  const [isLoading, setIsLoading] = useState(false);
-  
-  const navigate = useNavigate();
-  const { login } = useAuth(); // Grab login from our global context
 
-  // --- Event Handlers ---
-  const handleAuthSubmit = (e) => {
+  // Sync mode with URL: /signup -> true, /login -> false
+  const [isSignUp, setIsSignUp]         = useState(() => location.pathname === '/signup');
+  const [isLoading, setIsLoading]       = useState(false);
+  const [formError, setFormError]       = useState('');
+
+  useEffect(() => {
+    setIsSignUp(location.pathname === '/signup');
+  }, [location.pathname]);
+
+  // Format phone to E.164 (+CountryCodeNumber)
+  const formatPhone = (raw) => {
+    const digits = raw.replace(/\D/g, '');
+    if (!digits) return raw;
+    // If user didn't type +, prepend country code +91 for India (default)
+    return raw.startsWith('+') ? raw : `+${digits}`;
+  };
+
+  const handleAuthSubmit = async (e) => {
     e.preventDefault();
     if (!email || !password) return;
-    
     setIsLoading(true);
-    
-    // Simulate an API request (e.g., communicating with FastAPI backend)
-    setTimeout(() => {
-      setIsLoading(false);
-      // Log the user into the global state
-      login({ email: email, name: email.split('@')[0] });
-      // On success, redirect the user into the app
+    setFormError('');
+    try {
+      if (isSignUp) {
+        const formattedPhone = formatPhone(phone);
+        await apiSignup(email, formattedPhone, password);
+        // Auto-login after successful signup
+        const { access_token } = await apiLogin(email, password);
+        login({ email, name: email.split('@')[0] }, access_token);
+      } else {
+        const { access_token } = await apiLogin(email, password);
+        login({ email, name: email.split('@')[0] }, access_token);
+      }
       navigate('/closet');
-    }, 1500);
+    } catch (err) {
+      setFormError(err.message || 'Authentication failed');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleGoogleAuth = () => {
-    setIsLoading(true);
-    // Simulate Google SSO redirect
-    setTimeout(() => {
-      setIsLoading(false);
-      // Mock logging in via Google
-      login({ email: 'user@gmail.com', name: 'Google User' });
-      navigate('/closet');
-    }, 1500);
+    setFormError('Google sign-in is not yet connected to the backend.');
   };
 
   const toggleAuthMode = (e) => {
     if (e) e.preventDefault();
-    setIsSignUp(!isSignUp);
+    const nextMode = !isSignUp;
+    setIsSignUp(nextMode);
+    navigate(nextMode ? '/signup' : '/login', { replace: true });
     setEmail('');
+    setPhone('');
     setPassword('');
+    setFormError('');
   };
+
 
   return (
     <>
@@ -238,6 +257,22 @@ const AuthPage = () => {
                     />
                   </div>
 
+                  {/* Phone Field — signup only */}
+                  {isSignUp && (
+                    <div className="space-y-1.5">
+                      <label className="block text-[13px] font-medium text-[#1c1815]">Phone number</label>
+                      <input 
+                        type="tel"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                        placeholder="+919876543210"
+                        required
+                        className="w-full bg-white/60 border border-[#1c1815]/15 rounded-[12px] px-4 py-3 text-[14px] text-[#1c1815] placeholder:text-[#1c1815]/30 focus:outline-none focus:bg-[#fffdf9] focus:border-[#7b2d3b] focus:ring-4 focus:ring-[#7b2d3b]/10 transition-all"
+                      />
+                      <p className="text-[11px] text-[#1c1815]/40">Include country code, e.g. +91 for India</p>
+                    </div>
+                  )}
+
                   {/* Password Field */}
                   <div className="space-y-1.5">
                     <div className="flex justify-between items-center">
@@ -272,7 +307,15 @@ const AuthPage = () => {
                     </div>
                   </div>
 
+                  {/* Password hint for signup */}
+                  {isSignUp && (
+                    <p className="text-[11px] text-[#1c1815]/40 -mt-2 px-1">
+                      Must be 8+ chars with at least one uppercase letter, digit, and special character (!@#$%^&*…)
+                    </p>
+                  )}
+
                   {/* Keep Signed In Checkbox */}
+
                   <label className="flex items-center gap-3 cursor-pointer group mt-2 w-max">
                     <div className={`relative flex items-center justify-center w-[18px] h-[18px] rounded-[5px] transition-colors ${keepSignedIn ? 'bg-[#7b2d3b] border border-[#7b2d3b]' : 'bg-white/60 border border-[#1c1815]/20 group-hover:border-[#7b2d3b]/50'}`}>
                       <input 
@@ -290,6 +333,16 @@ const AuthPage = () => {
                     </div>
                     <span className="text-[14px] text-[#1c1815]/80 select-none">Keep me signed in for 30 days</span>
                   </label>
+
+                  {/* Error Banner */}
+                  {formError && (
+                    <div className="flex items-start gap-2 bg-red-50 border border-red-200 rounded-[10px] px-3 py-2.5">
+                      <svg className="w-4 h-4 text-red-500 shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3m0 3h.01M12 3a9 9 0 100 18A9 9 0 0012 3z" />
+                      </svg>
+                      <p className="text-[12px] text-red-600 font-medium">{formError}</p>
+                    </div>
+                  )}
 
                   {/* Primary Submit Button */}
                   <button 

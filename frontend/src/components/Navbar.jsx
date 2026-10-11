@@ -15,12 +15,11 @@ const Navbar = () => {
             </div>
 
             <div className='hidden md:flex gap-6 text-sm font-medium text-gray-600 items-center '>
-                <a href="#" className="hover:text-black transition-colors">Home</a>
-                <a href="#" className="hover:text-black transition-colors">How it Works</a>
-                <a href="#" className="hover:text-black transition-colors">Features</a>
-                <a href="#" className="hover:text-black transition-colors">Styles</a>
-                <a href="#" className="hover:text-black transition-colors">Pricing</a>
-                <a href="#" className="hover:text-black transition-colors">About</a>
+                <button onClick={() => navigate('/')} className="hover:text-black transition-colors cursor-pointer">Home</button>
+                <button onClick={() => navigate('/closet')} className="hover:text-black transition-colors cursor-pointer">My Closet</button>
+                <button onClick={() => navigate('/outfit')} className="hover:text-black transition-colors cursor-pointer">AI Stylist</button>
+                <a href="#how-it-works" onClick={(e) => { e.preventDefault(); navigate('/'); setTimeout(() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' }), 100); }} className="hover:text-black transition-colors cursor-pointer">How it Works</a>
+                <a href="#features" onClick={(e) => { e.preventDefault(); navigate('/'); setTimeout(() => document.getElementById('see-the-magic')?.scrollIntoView({ behavior: 'smooth' }), 100); }} className="hover:text-black transition-colors cursor-pointer">Features</a>
             </div>
 
             <div className='flex items-center gap-4'>
@@ -29,7 +28,10 @@ const Navbar = () => {
                         <div onClick={() => navigate('/closet')} className="hidden md:block text-sm font-semibold text-gray-600 hover:text-black cursor-pointer transition-colors">
                             My Closet
                         </div>
-                        <div className="w-9 h-9 rounded-full bg-gray-200 border border-gray-300 overflow-hidden shrink-0 cursor-pointer hover:opacity-80 transition-opacity">
+                        <div onClick={() => navigate('/outfit')} className="hidden md:block text-sm font-semibold text-[#7b2d3b] hover:text-[#5e1f2b] cursor-pointer transition-colors">
+                            ✨ AI Stylist
+                        </div>
+                        <div onClick={() => navigate('/closet')} className="w-9 h-9 rounded-full bg-gray-200 border border-gray-300 overflow-hidden shrink-0 cursor-pointer hover:opacity-80 transition-opacity" title={user.email || 'Profile'}>
                             <img src={user.avatar} alt="Profile" className="w-full h-full object-cover" />
                         </div>
                         <div onClick={() => navigate('/logout')} className='hidden md:block bg-[#7b2d3b] text-[#faf6ef] px-5 py-2.5 rounded-full text-sm font-medium cursor-pointer hover:bg-[#5e1f2b] transition-colors'>
@@ -41,7 +43,7 @@ const Navbar = () => {
                         <div onClick={() => navigate('/login')} className="hidden md:block text-sm font-semibold text-gray-600 hover:text-black cursor-pointer transition-colors">
                             Log in
                         </div>
-                        <div onClick={() => navigate('/login')} className='bg-black text-white px-5 py-2.5 rounded-full text-sm font-medium cursor-pointer hover:bg-gray-800 transition-colors'>
+                        <div onClick={() => navigate('/signup')} className='bg-black text-white px-5 py-2.5 rounded-full text-sm font-medium cursor-pointer hover:bg-gray-800 transition-colors'>
                             Get Started
                         </div>
                     </>
@@ -58,12 +60,9 @@ const Navbar = () => {
             {/* Mobile Dropdown Menu */}
             {menuOpen && (
                 <div className='md:hidden absolute top-full left-0 w-full bg-white shadow-md border-t border-gray-100 flex flex-col px-8 py-6 gap-5 z-50'>
-                    <a href="#" className="text-gray-600 hover:text-black font-medium transition-colors">Home</a>
-                    <a href="#" className="text-gray-600 hover:text-black font-medium transition-colors">How it Works</a>
-                    <a href="#" className="text-gray-600 hover:text-black font-medium transition-colors">Features</a>
-                    <a href="#" className="text-gray-600 hover:text-black font-medium transition-colors">Styles</a>
-                    <a href="#" className="text-gray-600 hover:text-black font-medium transition-colors">Pricing</a>
-                    <a href="#" className="text-gray-600 hover:text-black font-medium transition-colors">About</a>
+                    <button onClick={() => { setmenuOpen(false); navigate('/'); }} className="text-left text-gray-600 hover:text-black font-medium transition-colors">Home</button>
+                    <button onClick={() => { setmenuOpen(false); navigate('/closet'); }} className="text-left text-gray-600 hover:text-black font-medium transition-colors">My Closet</button>
+                    <button onClick={() => { setmenuOpen(false); navigate('/outfit'); }} className="text-left text-[#7b2d3b] font-semibold transition-colors">✨ AI Stylist</button>
 
                     <div className="flex flex-col gap-3 mt-2">
                         {user ? (
@@ -89,7 +88,7 @@ const Navbar = () => {
                                 <div onClick={() => { setmenuOpen(false); navigate('/login'); }} className='w-full text-center text-sm font-semibold text-gray-700 hover:text-black cursor-pointer py-2.5 border border-gray-200 rounded-full transition-colors'>
                                     Log in
                                 </div>
-                                <div onClick={() => { setmenuOpen(false); navigate('/login'); }} className='w-full bg-black text-white px-5 py-3 rounded-full text-sm text-center font-medium cursor-pointer hover:bg-gray-800 transition-colors'>
+                                <div onClick={() => { setmenuOpen(false); navigate('/signup'); }} className='w-full bg-black text-white px-5 py-3 rounded-full text-sm text-center font-medium cursor-pointer hover:bg-gray-800 transition-colors'>
                                     Get Started
                                 </div>
                             </>

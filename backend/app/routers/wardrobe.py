@@ -178,3 +178,42 @@ def remove_garment(
     if garment is None:
         raise HTTPException(status_code=404, detail="Garment not found")
     delete_garment(db, garment)
+
+
+@router.post("/synthetic-closet", response_model=WardrobeListResponse, status_code=status.HTTP_201_CREATED)
+def generate_synthetic_closet(
+    replace: bool = False,
+    count: int = 16,
+    current_user: User = Depends(get_current_user),
+    classifier: FashionClassifier = Depends(get_classifier),
+    db: Session = Depends(get_db),
+):
+    """
+    Generate a synthetic digital closet using clothing images from the clothing dataset.
+    Every image is passed through the exact same classification & feature extraction pipeline
+    (FashionClassifier, color extraction, local disk persistence) as user uploads.
+    """
+    from app.services.synthetic_closet import seed_synthetic_closet
+
+    created = seed_synthetic_closet(
+        db=db,
+        user_id=str(current_user.id),
+        classifier=classifier,
+        replace=replace,
+        max_items=count,
+    )
+    items = [
+        GarmentResponse(
+            id=str(g.id),
+            category=g.category,
+            category_confidence=g.category_confidence,
+            pattern=g.pattern,
+            formality=g.formality,
+            dominant_colors=g.dominant_colors,
+            image_url=g.image_url,
+            created_at=g.created_at,
+        )
+        for g in created
+    ]
+    return WardrobeListResponse(items=items, total=len(items))
+

@@ -2,7 +2,7 @@
 
 const HowItWorks = () => {
     return (
-        <div className=' relative z-10 md:-mt-5 md:bg-neutral-950  text-black md:text-white rounded-3xl py-2 px-8 md:px-12 mx-6 md:mx-20 flex flex-col gap-2 items-center'>
+        <div id='how-it-works' className=' relative z-10 md:-mt-5 md:bg-neutral-950  text-black md:text-white rounded-3xl py-2 px-8 md:px-12 mx-6 md:mx-20 flex flex-col gap-2 items-center'>
 
             <h1 className='font-bold text-lg md:text-2xl flex items-start'>Your Closet. Endless Possiblities.</h1>
 

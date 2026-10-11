@@ -44,16 +44,31 @@ def _garments_to_engine_data(garments) -> list[GarmentData]:
     ]
 
 
+def _extract_meta(style_tags: dict | None) -> tuple[dict, dict]:
+    """Separate _meta (name, reasoning, occasion) from the style percentage dictionary."""
+    if not isinstance(style_tags, dict):
+        return {}, {}
+    meta = style_tags.get("_meta", {}) if isinstance(style_tags.get("_meta"), dict) else {}
+    clean_tags = {k: v for k, v in style_tags.items() if k != "_meta"}
+    return meta, clean_tags
+
+
 def _persist_outfits(db: Session, user_id: str, scored_outfits) -> list[Outfit]:
     """Bulk-insert the scored outfits returned by the engine and return ORM objects."""
     orm_outfits = []
     for o in scored_outfits:
+        stored_tags = dict(o.style_tags) if isinstance(o.style_tags, dict) else {}
+        stored_tags["_meta"] = {
+            "name": getattr(o, "name", ""),
+            "reasoning": getattr(o, "reasoning", ""),
+            "occasion": getattr(o, "occasion", ""),
+        }
         outfit = Outfit(
             id=uuid.uuid4(),
             user_id=user_id,
             garment_ids=o.garment_ids,
             score=o.score,
-            style_tags=o.style_tags,
+            style_tags=stored_tags,
         )
         db.add(outfit)
         orm_outfits.append(outfit)
@@ -90,7 +105,14 @@ def generate(
         )
 
     engine_garments = _garments_to_engine_data(garments)
-    scored = generate_outfits(engine_garments, count=payload.count)
+    scored = generate_outfits(
+        engine_garments,
+        count=payload.count,
+        occasion=payload.occasion,
+        style=payload.style,
+        season=payload.season,
+        fit=payload.fit,
+    )
 
     if not scored:
         # Wardrobe exists but has no combinable items (e.g. all outerwear)
@@ -98,15 +120,20 @@ def generate(
 
     orm_outfits = _persist_outfits(db, str(current_user.id), scored)
 
-    outfits = [
-        OutfitItem(
-            id=str(o.id),
-            garment_ids=o.garment_ids,
-            score=o.score,
-            style_tags=o.style_tags,
+    outfits = []
+    for orm_o, sc_o in zip(orm_outfits, scored):
+        meta, clean_tags = _extract_meta(orm_o.style_tags)
+        outfits.append(
+            OutfitItem(
+                id=str(orm_o.id),
+                garment_ids=orm_o.garment_ids,
+                score=orm_o.score,
+                style_tags=clean_tags,
+                name=sc_o.name or meta.get("name"),
+                reasoning=sc_o.reasoning or meta.get("reasoning"),
+                occasion=sc_o.occasion or meta.get("occasion"),
+            )
         )
-        for o in orm_outfits
-    ]
     return OutfitGenerateResponse(outfits=outfits)
 
 
@@ -123,13 +150,18 @@ def list_saved_outfits(
         .all()
     )
 
-    outfits = [
-        OutfitItem(
-            id=str(o.id),
-            garment_ids=o.garment_ids,
-            score=o.score,
-            style_tags=o.style_tags,
+    outfits = []
+    for o in orm_outfits:
+        meta, clean_tags = _extract_meta(o.style_tags)
+        outfits.append(
+            OutfitItem(
+                id=str(o.id),
+                garment_ids=o.garment_ids,
+                score=o.score,
+                style_tags=clean_tags,
+                name=meta.get("name"),
+                reasoning=meta.get("reasoning"),
+                occasion=meta.get("occasion"),
+            )
         )
-        for o in orm_outfits
-    ]
     return SavedOutfitsResponse(outfits=outfits, total=len(outfits))

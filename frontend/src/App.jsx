@@ -9,6 +9,7 @@ import DigitalCloset from './components/DigitalCloset.jsx';
 import FindOutfit from './components/FindOutfit.jsx';
 import AuthPage from './pages/AuthPage.jsx';
 import LogoutPage from './pages/LogoutPage.jsx';
+import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 function LandingPage() {
   return (
@@ -33,12 +34,13 @@ function App() {
         <Route path="/login" element={<AuthPage />} />
         <Route path="/signup" element={<AuthPage />} />
         <Route path="/logout" element={<LogoutPage />} />
-        <Route path="/closet" element={<DigitalCloset />} />
-        <Route path="/outfit" element={<FindOutfit />} />
-        <Route path="/combinations" element={<FindOutfit />} />
+        <Route path="/closet" element={<ProtectedRoute><DigitalCloset /></ProtectedRoute>} />
+        <Route path="/outfit" element={<ProtectedRoute><FindOutfit /></ProtectedRoute>} />
+        <Route path="/combinations" element={<ProtectedRoute><FindOutfit /></ProtectedRoute>} />
       </Routes>
     </>
   );
 }
 
 export default App;
+

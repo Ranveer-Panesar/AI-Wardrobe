@@ -44,3 +44,19 @@ export async function deleteItem(id) {
   const res = await apiFetch(`/wardrobe/items/${id}`, { method: 'DELETE' });
   if (!res.ok && res.status !== 204) throw new Error('Delete failed');
 }
+
+/**
+ * POST /wardrobe/synthetic-closet  →  { items: [...], total: number }
+ * Seeds the digital closet with sample images from the clothing dataset,
+ * running them through the exact same classification & feature extraction pipeline.
+ */
+export async function generateSyntheticCloset(replace = false, count = 16) {
+  const res = await apiFetch(`/wardrobe/synthetic-closet?replace=${replace}&count=${count}`, {
+    method: 'POST',
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.detail || 'Failed to generate synthetic closet');
+  }
+  return res.json();
+}

@@ -1,7 +1,9 @@
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../context/AuthContext'
 
 const Hero = () => {
     const navigate = useNavigate();
+    const { user } = useAuth();
     
     return (
         <div className='w-full px-6 md:px-20 py-2 flex flex-col md:flex-row items-center justify-between gap-16 md:bg-[url(/closet.jpg)] md:bg-cover md:bg-center md:bg-no-repeat  '>
@@ -17,14 +19,15 @@ const Hero = () => {
                 </p>
 
                 <div className='flex items-center justify-start gap-4 mt-2 sm:flex-row'>
-                    <button onClick={() => navigate('/login')} className='bg-black text-white py-1.5 px-4 md:px-7 md:py-3.5 rounded-full text-sm font-medium flex items-center gap-2 whitespace-nowrap cursor-pointer hover:bg-gray-800 transition-colors'>
-                        Create your Closet
+                    <button onClick={() => navigate(user ? '/closet' : '/login')} className='bg-black text-white py-1.5 px-4 md:px-7 md:py-3.5 rounded-full text-sm font-medium flex items-center gap-2 whitespace-nowrap cursor-pointer hover:bg-gray-800 transition-colors'>
+                        {user ? 'Open My Closet' : 'Create your Closet'}
                     </button>
 
                     <button onClick={() => navigate('/outfit')} className='bg-white text-black border border-gray-300 md:px-7 md:py-3.5 rounded-full text-sm font-medium flex items-center gap-2 px-4 py-1.5 whitespace-nowrap cursor-pointer hover:bg-gray-50 transition-colors'>
-                        use me
+                        ✨ Find Outfits
                     </button>
                 </div>
+
 
                 <div className='flex items-center gap-3 mt-2'>
                     <div className='flex'>
