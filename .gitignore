@@ -39,4 +39,8 @@ test_*.png
 test_*.jpg
 scratch_*
 lower_mask_test.png
-upper_mask_test.png
+upper_mask_test.png
+
+# --- Presentation / Binary doc artifacts ---
+*.pptx
+*.pdf
